@@ -232,7 +232,14 @@ func moveResource(tempDir, statePath, resourceAddress string) error {
 
 		return nil
 	} else {
-		cmd := exec.Command("terraform", "state", "mv", "--state-out="+statePath, resourceAddress, resourceAddress)
+		cmd := exec.Command(
+			"terraform",
+			"state",
+			"mv",
+			"--state-out="+statePath,
+			resourceAddress,
+			resourceAddress,
+		)
 		cmd.Dir = tempDir
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
