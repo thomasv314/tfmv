@@ -270,7 +270,6 @@ func copyFile(src, dst string) error {
 
 func pushState(dir, stateFile string) error {
 	if dryRun {
-
 		fmt.Printf(
 			"%s Would run 'terraform state push %s' from %s\n",
 			magenta("[dry-run]"),
