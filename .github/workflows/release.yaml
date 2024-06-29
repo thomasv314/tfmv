@@ -1,0 +1,13 @@
+name: release
+
+on:
+  push:
+
+
+permissions:
+  contents: write
+
+jobs:
+  - uses: codfish/semantic-release-action@v3
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
