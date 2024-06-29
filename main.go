@@ -53,8 +53,8 @@ func main() {
 	}
 }
 
-const SourceStateFile string = "terraform.tfstate"
-const TargetStateFile string = "target-state.tfstate"
+const SourceStateFileName string = "terraform.tfstate"
+const TargetStateFileName string = "target-state.tfstate"
 
 func resolvePath(path string) string {
 	usr, err := user.Current()
@@ -118,50 +118,82 @@ func runTerraformMove(cmd *cobra.Command, args []string) {
 	tempDir = newTempDir
 	defer os.RemoveAll(tempDir)
 
-	sourceStatePath := filepath.Join(tempDir, SourceStateFile)
-	targetStatePath := filepath.Join(tempDir, TargetStateFile)
+	sourceStatePath := filepath.Join(tempDir, SourceStateFileName)
+	targetStatePath := filepath.Join(tempDir, TargetStateFileName)
+
+	fmt.Printf("==> %s\n", green("Initializing source state"))
+
+	if err := terraformInit(sourceDir); err != nil {
+		fmt.Println("Error running terraform init in source directory:", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("==> %s\n", green("Pulling source state"))
 
 	if err := pullState(sourceDir, sourceStatePath); err != nil {
 		fmt.Println("Error pulling state from source directory:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("==> %s\n", green("Pulled source state"))
+	fmt.Printf("==> %s\n", green("Initializing target state"))
+
+	if err := terraformInit(targetDir); err != nil {
+		fmt.Println("Error running terraform init in target directory:", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("==> %s\n", green("Pulling target state"))
 
 	if err := pullState(targetDir, targetStatePath); err != nil {
 		fmt.Println("Error pulling state from target directory:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("==> %s\n", green("Pulled target state"))
+	fmt.Printf("==> %s\n", green("Moving resource from source to target in local state"))
 
 	if err := moveResource(tempDir, targetStatePath, resourceAddress); err != nil {
 		fmt.Println("Error moving resource:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("==> %s\n", green("Moved resource from source to target in local state"))
+	fmt.Printf("==> %s\n", green("Copying updated state to target directory"))
 
-	if err := copyFile(targetStatePath, filepath.Join(targetDir, TargetStateFile)); err != nil {
+	if err := copyFile(targetStatePath, filepath.Join(targetDir, TargetStateFileName)); err != nil {
 		fmt.Println("Error copying target state file:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("==> %s\n", green("Copied updated target state to target directory"))
+	fmt.Printf("==> %s\n", green("Pushing updated target state."))
 
-	if err := pushState(targetDir, TargetStateFile); err != nil {
+	if err := pushState(targetDir, TargetStateFileName); err != nil {
 		fmt.Println("Error pushing state to target directory:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("==> %s\n", green("Pushed updated target state. Resource move success!"))
+	fmt.Printf("==> %s\n", green("Successfully moved!"))
 
 	if !dryRun {
-		err = os.Remove(filepath.Join(targetDir, TargetStateFile))
+		err = os.Remove(filepath.Join(targetDir, TargetStateFileName))
 		if err != nil {
 			fmt.Println("Error cleaning up filepath:", err)
 			os.Exit(1)
 		}
+	}
+}
+
+func terraformInit(dir string) error {
+	if dryRun {
+		fmt.Printf(
+			"%s Would run 'terraform init': \n  from %s\n",
+			magenta("[dry-run]"),
+			dir,
+		)
+		return nil
+	} else {
+		cmd := exec.Command("terraform", "init")
+		cmd.Stderr = os.Stderr
+		cmd.Dir = dir
+		return cmd.Run()
 	}
 }
 
@@ -184,7 +216,7 @@ func pullState(dir, outPath string) error {
 		if err != nil {
 			return err
 		}
-		return ioutil.WriteFile(outPath, out, 0644)
+		return os.WriteFile(outPath, out, 0644)
 	}
 }
 
@@ -235,7 +267,7 @@ func pushState(dir, stateFile string) error {
 		fmt.Printf(
 			"%s Would run 'terraform state push %s' from %s\n",
 			magenta("[dry-run]"),
-			TargetStateFile,
+			TargetStateFileName,
 			dir,
 		)
 
