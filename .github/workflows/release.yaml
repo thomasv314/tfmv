@@ -14,8 +14,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - shell: bash
+      run: |
+        archs=(amd64 arm64)
+        os=(darwin linux windows)
+
+        # Clean previous builds if any
+        rm -rf build
+        mkdir -p build
+
+        # Iterate over architectures and operating systems
+        for arch in "${archs[@]}"; do
+          for op in "${os[@]}"; do
+            # Build tfscp binary
+            echo "Building tfscp for $arch-$op..."
+            GOOS=$o GOARCH=$arch go build -o build/tfscp-$arch-$op .
+          done
+        done
+
+        git status
     - uses: codfish/semantic-release-action@v3
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        plugins: "['@semantic-release/commit-analyzer', '@semantic-release/release-notes-generator', '@semantic-release/github']"
+        plugins: |
+          [
+          '@semantic-release/commit-analyzer', 
+          '@semantic-release/release-notes-generator', 
+            [
+              '@semantic-release/github',
+              {
+                "assets": [
+                  { "path": "build/tfscp-amd64-darwin", "label": "darwin amd64" },
+                  { "path": "build/tfscp-arm64-darwin", "label": "darwin arm64" },
+                  { "path": "build/tfscp-amd64-linux", "label": "linux amd64" },
+                  { "path": "build/tfscp-arm64-linux", "label": "linux arm64" },
+                  { "path": "build/tfscp-amd64-windows", "label": "windows amd64" },
+                  { "path": "build/tfscp-arm64-windows", "label": "windows arm64" }
+                ]
+              }
+            ]
+          ]
