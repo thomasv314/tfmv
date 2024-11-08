@@ -110,13 +110,12 @@ func runTerraformMove(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	newTempDir, err := ioutil.TempDir("", "terraform-move")
+	newTempDir, err := os.CreateTemp("", "terraform-scp")
 	if err != nil {
 		fmt.Println("Error creating temporary directory:", err)
 		os.Exit(1)
 	}
-	tempDir = newTempDir
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(newTempDir.Name())
 
 	sourceStatePath := filepath.Join(tempDir, SourceStateFileName)
 	targetStatePath := filepath.Join(tempDir, TargetStateFileName)
