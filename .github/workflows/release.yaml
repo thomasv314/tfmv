@@ -25,10 +25,10 @@ jobs:
 
         # Iterate over architectures and operating systems
         for arch in "${archs[@]}"; do
-          for op in "${os[@]}"; do
+          for os in "${os[@]}"; do
             # Build tfscp binary
-            echo "Building tfscp for $arch-$op..."
-            GOOS=$o GOARCH=$arch go build -o build/tfscp-$op-$arch .
+            echo "Building tfscp for $arch-$os..."
+            GOOS=$os GOARCH=$arch go build -o build/tfscp-$os-$arch .
           done
         done
 
@@ -38,8 +38,8 @@ jobs:
       with:
         plugins: |
           [
-          '@semantic-release/commit-analyzer', 
-          '@semantic-release/release-notes-generator', 
+          '@semantic-release/commit-analyzer',
+          '@semantic-release/release-notes-generator',
             [
               '@semantic-release/github',
               {
