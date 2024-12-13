@@ -58,63 +58,12 @@ tfscp "module.foobar_service" --target-dir="./foobar-service"
 
 For example:
 
-```
-$ cd ~/terraform/apps
-$ tfscp "module.foobar_service" --target-dir="./foobar-service"
-Moving resource module.foobar_service:
-  From state /Users/thomasvendetta/code/example-terraform-repo/apps
-  To state   /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service
+![Example of a dry run preparing to move/copy terraform resources across remote state files](https://github.com/user-attachments/assets/aaf33a0a-b894-4e38-952c-4e8ad0533068)
 
-[dry-run] enabled. Not actually making moves.
-
-==> Initializing source state
-[dry-run] Would run 'terraform init':
-  from /Users/thomasvendetta/code/example-terraform-repo/apps
-
-==> Pulling source state
-[dry-run] Would run 'terraform state pull':
-  from /Users/thomasvendetta/code/example-terraform-repo/apps
-  write to /operating-dir/terraform.tfstate
-
-==> Initializing target state
-[dry-run] Would run 'terraform init':
-  from /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service
-
-==> Pulling target state
-[dry-run] Would run 'terraform state pull':
-  from /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service
-  write to /operating-dir/target-state.tfstate
-
-==> Moving resource from source to target in local state
-[dry-run] Would run 'terraform state mv --state-out=/operating-dir/target-state.tfstate'
-
-==> Copying updated state to target directory
-[dry-run] Would copy mutated state file over to target state directory
-  from /operating-dir/target-state.tfstate
-  to /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service/target-state.tfstate
-
-==> Pushing updated target state.
-[dry-run] Would run 'terraform state push target-state.tfstate' from /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service
-
-==> Successfully moved!
-```
-
-If the dry-run output looks good, execute the migration by disabling the dry-run mode with `--dry-run=false`:
+If the dry-run output looks good, execute the migration by disabling the dry-run mode:
 
 ```
-$ tfscp "module.foobar_service" --target-dir="./foobar-service" --dry-run=false             
-Moving resource module.foobar_service:
-  From state /Users/thomasvendetta/code/example-terraform-repo/apps
-  To state   /Users/thomasvendetta/code/example-terraform-repo/apps/foobar-service
-Do you want to continue? (yes/no): yes
-==> Initializing source state
-==> Pulling source state
-==> Initializing target state
-==> Pulling target state
-==> Moving resource from source to target in local state
-Move "module.foobar_service" to "module.foobar_service"
-Successfully moved 1 object(s).
-==> Copying updated state to target directory
-==> Pushing updated target state.
-==> Successfully moved!
+ tfscp "module.foobar_service" --target-dir="./foobar-service" --dry-run=false
 ```
+
+![Example of moving terraform resources across remote state files](https://github.com/user-attachments/assets/8edc8cfe-c161-40e8-b2a1-e97f7b2a58c4)
